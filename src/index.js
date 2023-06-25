@@ -11,7 +11,7 @@ const loadMoreBtn = document.querySelector('.load-more');
 const BASE_URL = 'https://pixabay.com/api/';
 const KEY = '37658409-a5873dfa744a69a400960a9aa';
 let searchRequest;
-let lightbox;
+let lightbox = new SimpleLightbox('.gallery a', { /* options */ }); 
 let PARAMS = {
     'key': KEY,
     'q': searchRequest,
@@ -58,13 +58,16 @@ function renderMarkup(response) {
         </div>`
     }).join('');
     galleryEl.insertAdjacentHTML('beforeend', responseMarkup);
-  
 }
 
 async function onSubmitForm (event) {
     event.preventDefault();
     clearHTML();
     searchRequest = inputEl.value.trim();
+    if (searchRequest === '') {
+        Notify.failure('Please type something in the search bar!');
+        return;
+        }
     PARAMS.page = 1;
     PARAMS.q = searchRequest; 
     toggleLoadMoreBtn(true);
@@ -77,9 +80,13 @@ async function onSubmitForm (event) {
             return; 
         } 
         renderMarkup(response);   
-        lightbox = new SimpleLightbox('.gallery a', { /* options */ }); 
+        lightbox.refresh(); 
         Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
-        toggleLoadMoreBtn(false);
+        if (response.data.total < 40) {
+            toggleLoadMoreBtn(true);
+        } else {
+            toggleLoadMoreBtn(false);
+        }
     } catch (error) {
         showError();
     }
